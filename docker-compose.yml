@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  redis-rdb:
+    image: redis:6.2
+    ports:
+      - "6379:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf 
+    volumes:
+      - ./services/redis/redis-rdb.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis:/data
+
+  redis-aof:
+    image: redis:6.2
+    ports:
+      - "6380:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf 
+    volumes:
+      - ./services/redis/redis-aof.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis:/data
+
+  beanstalkd:
+    build: beanstalkd
+    volumes:
+      - .data/beanstalkd/binlog:/project/binlog
+    ports:
+      - 11300:11300
+
+  producer:
+    build:
+      context: ./services/web
+      dockerfile: Dockerfile
+    environment:
+      FLASK_APP: producer.py
+      APP_FOLDER: /home/app/web
+    command: gunicorn --bind 0.0.0.0:5000 manage-consumer:app
+    ports:
+      - 5000:5000
+    depends_on:
+      - redis-aof
+      - redis-rdb
+      - beanstalkd
+
+  consumer:
+    build:
+      context: ./services/web
+      dockerfile: Dockerfile
+    command: python consumer.py
+    ports:
+      - 5001:5001
+    depends_on:
+      - redis-aof
+      - redis-rdb
+      - beanstalkd
+
+  siege:
+    image: yokogawa/siege
