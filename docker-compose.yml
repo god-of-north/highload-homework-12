@@ -20,7 +20,7 @@ services:
       - ./data/redis:/data
 
   beanstalkd:
-    build: beanstalkd
+    image: schickling/beanstalkd
     volumes:
       - .data/beanstalkd/binlog:/project/binlog
     ports:
@@ -33,7 +33,7 @@ services:
     environment:
       FLASK_APP: producer.py
       APP_FOLDER: /home/app/web
-    command: gunicorn --bind 0.0.0.0:5000 manage-consumer:app
+    command: gunicorn --bind 0.0.0.0:5000 manage-producer:app
     ports:
       - 5000:5000
     depends_on:
