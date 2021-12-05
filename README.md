@@ -1,15 +1,39 @@
-# highload-homework-12
+# Homework #12 for Highload:Projector
+
+**Redis vs Beanstalkd**
+
+Set up 3 containers - beanstalkd and redis (rdb and aof)
+
+Write 2 simple scripts: 1st should put message into queue, 2nd should read from queue.
+
+Configure storing to disk, and compare queues performance.
 
 
+## Instllation
+
+```
+git clone https://github.com/god-of-north/highload-homework-12.git
+cd highload-homework-12
+docker-compose build
+```
+
+## Using
+
+To put message in queue:
+```
 curl -X GET "localhost:5000/publish_beanstalkd?size=1024&batch=5"
 curl -X GET "localhost:5000/publish_redis_rdb?size=1024&batch=5"
 curl -X GET "localhost:5000/publish_redis_aof?size=1024&batch=5"
+```
 
-docker-compose run --rm siege -c25 -t10s -q -b "http://producer:5000/publish_beanstalkd?size=64&batch=1"
+To run Siege tests:
+```
+docker-compose run --rm siege -c25 -t10s -b "http://producer:5000/publish_beanstalkd?size=64&batch=1"
+docker-compose run --rm siege -c25 -t10s -b "http://producer:5000/publish_redis_rdb?size=64&batch=1"
+docker-compose run --rm siege -c25 -t10s -b "http://producer:5000/publish_redis_aof?size=64&batch=1"
+```
 
-docker-compose run --rm siege -c25 -t10s -q -b "http://producer:5000/publish_beanstalkd?size=64&batch=1"
-
-
+## Test results
 
 Beanstalkd:
 ```
